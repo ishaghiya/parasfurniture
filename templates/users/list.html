@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}User Management — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">User & Employee Account Management</h4>
+    <small class="text-muted">Create employee accounts, reset passwords and assign role permissions</small>
+  </div>
+  <div>
+    <button type="button" class="btn btn-pf-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
+      + Create New Account
+    </button>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Created Date</th>
+            <th>Last Login</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td class="fw-bold text-dark">{{ u.username }}</td>
+              <td>{{ u.full_name }}</td>
+              <td>
+                {% if u.role == 'OWNER' %}
+                  <span class="badge bg-warning text-dark">OWNER (Full Access)</span>
+                {% else %}
+                  <span class="badge bg-info text-dark">EMPLOYEE (Entry Access)</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge bg-success">Active</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td><small class="text-muted">{{ u.created_at.strftime('%d-%m-%Y') if u.created_at else '' }}</small></td>
+              <td><small class="text-muted">{{ u.last_login.strftime('%d-%m-%Y %H:%M') if u.last_login else 'Never' }}</small></td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ u.id }}">
+                    Reset Password
+                  </button>
+                  {% if u.username != 'admin' %}
+                    <form method="POST" action="{{ url_for('users.toggle_status', user_id=u.id) }}" class="d-inline">
+                      <button type="submit" class="btn btn-outline-warning">
+                        {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+
+                <!-- Reset Password Modal -->
+                <div class="modal fade text-start" id="resetPasswordModal{{ u.id }}" tabindex="-1">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Reset Password for {{ u.username }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <form method="POST" action="{{ url_for('users.reset_password', user_id=u.id) }}">
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label class="form-label fw-bold">New Password</label>
+                            <input type="password" class="form-control" name="new_password" minlength="6" required>
+                            <small class="text-muted d-block mt-1">User will be forced to change this password on next login.</small>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-pf-primary">Reset Password</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Create User / Employee Account</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('users.add') }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Username <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="username" placeholder="e.g. rahul_sales" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Full Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" name="full_name" placeholder="e.g. Rahul Patel" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Initial Password <span class="text-danger">*</span></label>
+            <input type="password" class="form-control" name="password" minlength="6" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Role Permission</label>
+            <select class="form-select" name="role">
+              <option value="EMPLOYEE" selected>EMPLOYEE (Entry & View Only)</option>
+              <option value="OWNER">OWNER (Full System Access)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-pf-primary">Create User Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,314 @@
+/* Paras Furniture - Custom Business Theme */
+
+:root {
+  --pf-primary: #1e293b;        /* Dark Slate */
+  --pf-primary-light: #334155;
+  --pf-accent: #b45309;         /* Warm Teak Wood Gold */
+  --pf-accent-hover: #92400e;
+  --pf-accent-light: #fef3c7;
+  --pf-bg: #f8fafc;
+  --pf-card-bg: #ffffff;
+  --pf-text: #0f172a;
+  --pf-text-muted: #64748b;
+  --pf-border: #e2e8f0;
+  --pf-success: #16a34a;
+  --pf-warning: #d97706;
+  --pf-danger: #dc2626;
+  --pf-info: #0284c7;
+  --pf-sidebar-width: 250px;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--pf-bg);
+  color: var(--pf-text);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar Styling */
+#sidebar {
+  width: var(--pf-sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--pf-primary);
+  color: #ffffff;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+#sidebar .brand-header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#sidebar .brand-logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--pf-accent-light);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#sidebar .nav-link {
+  color: #cbd5e1;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+#sidebar .nav-link:hover, #sidebar .nav-link.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--pf-accent);
+}
+
+#sidebar .nav-link i {
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+#sidebar .user-badge {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Main Content Area */
+#main-content {
+  margin-left: var(--pf-sidebar-width);
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* Topbar Header */
+.top-header {
+  background: var(--pf-card-bg);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* KPI Cards */
+.kpi-card {
+  background: var(--pf-card-bg);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--pf-border);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.kpi-card .kpi-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--pf-text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.kpi-card .kpi-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--pf-text);
+  margin-bottom: 0.25rem;
+}
+
+.kpi-card .kpi-sub {
+  font-size: 0.8rem;
+  color: var(--pf-text-muted);
+}
+
+.kpi-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+/* Financial Color Utilities */
+.bg-kpi-income { background: #dcfce7; color: #15803d; }
+.bg-kpi-expense { background: #fee2e2; color: #b91c1c; }
+.bg-kpi-profit { background: #fef3c7; color: #b45309; }
+.bg-kpi-bills { background: #e0f2fe; color: #0369a1; }
+.bg-kpi-pending { background: #ffedd5; color: #c2410c; }
+.bg-kpi-received { background: #d1fae5; color: #047857; }
+
+/* Custom Buttons */
+.btn-pf-primary {
+  background-color: var(--pf-primary);
+  color: #ffffff;
+  border: None;
+  font-weight: 600;
+}
+
+.btn-pf-primary:hover {
+  background-color: var(--pf-primary-light);
+  color: #ffffff;
+}
+
+.btn-pf-accent {
+  background-color: var(--pf-accent);
+  color: #ffffff;
+  border: None;
+  font-weight: 600;
+}
+
+.btn-pf-accent:hover {
+  background-color: var(--pf-accent-hover);
+  color: #ffffff;
+}
+
+/* Status Badges */
+.badge-paid {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+}
+
+.badge-partially-paid {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+}
+
+.badge-pending {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+}
+
+.badge-overdue {
+  background-color: #7f1d1d;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.35em 0.65em;
+}
+
+/* Tables */
+.table-custom {
+  background: var(--pf-card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.table-custom th {
+  background-color: #f1f5f9;
+  color: var(--pf-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid var(--pf-border);
+}
+
+.table-custom td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Filter Card */
+.filter-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border: 1px solid var(--pf-border);
+  margin-bottom: 1.5rem;
+}
+
+/* Login Page Styling */
+.login-bg {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-card .brand-title {
+  color: var(--pf-primary);
+  font-weight: 800;
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.login-card .brand-sub {
+  color: var(--pf-accent);
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+/* Chart Container */
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+/* Notification Toast */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* Print/Export Styles */
+@media print {
+  #sidebar, .top-header, .no-print {
+    display: none !important;
+  }
+  #main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+}

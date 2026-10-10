@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Expense Categories — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Manage Expense Categories</h4>
+    <small class="text-muted">Configure custom spending categories and default types</small>
+  </div>
+  <div>
+    <a href="{{ url_for('expense.index') }}" class="btn btn-outline-secondary btn-sm">Back to Expenses</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Add Category Form -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold text-dark mb-0">Add Expense Category</h6>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('expense.add_category') }}">
+          <div class="mb-3">
+            <label for="name" class="form-label fw-bold">Category Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Workshop Polish / Sawdust Disposal" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="default_type" class="form-label fw-bold">Default Type</label>
+            <select class="form-select" id="default_type" name="default_type">
+              <option value="WORKER">WORKER (Salaries & Labour)</option>
+              <option value="OFFICE">OFFICE (Stationery & Bills)</option>
+              <option value="FOOD">FOOD / STAFF (Tea & Snacks)</option>
+              <option value="FACTORY">FACTORY / WORKSHOP (Power & Tools)</option>
+              <option value="MATERIAL">MATERIAL (Wood, Plywood, Hardware)</option>
+              <option value="TRANSPORT">TRANSPORT (Fuel & Delivery)</option>
+              <option value="BUSINESS" selected>BUSINESS (Rent, Taxes, Software)</option>
+              <option value="OTHER">OTHER (Miscellaneous)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-pf-accent w-100 py-2">Add Category</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing Categories List -->
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold text-dark mb-0">Active Expense Categories ({{ categories|length }})</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Category Name</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in categories %}
+                <tr>
+                  <td class="fw-bold">{{ c.name }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ c.default_type }}</span></td>
+                  <td>{{ c.description or '-' }}</td>
+                  <td><span class="badge bg-success">Active</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

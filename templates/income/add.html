@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Add Client Bill / Income — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Add Client Bill / Income Entry</h4>
+    <small class="text-muted">Record details of an already-generated client bill for accounting & analytics</small>
+  </div>
+  <div>
+    <a href="{{ url_for('income.index') }}" class="btn btn-outline-secondary btn-sm">Back to Bills List</a>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('income.add') }}">
+  <div class="row g-4">
+    
+    <!-- 1. Bill Information Card -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h6 class="fw-bold text-dark mb-0">1. Bill & Payment Details</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="bill_number" class="form-label fw-bold">Bill Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="bill_number" name="bill_number" value="{{ suggested_bill_no }}" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="bill_date" class="form-label fw-bold">Bill Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="bill_date" name="bill_date" value="{{ today_date }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="due_date" class="form-label">Due Date</label>
+              <input type="date" class="form-control" id="due_date" name="due_date">
+            </div>
+
+            <div class="col-md-6">
+              <label for="payment_method" class="form-label fw-bold">Payment Method</label>
+              <select class="form-select" id="payment_method" name="payment_method">
+                <option value="Cash" selected>Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Card">Card</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="reference_number" class="form-label">Existing Software Bill Ref #</label>
+              <input type="text" class="form-control" id="reference_number" name="reference_number" placeholder="e.g. INV-2026-88">
+            </div>
+
+            <div class="col-md-6">
+              <label for="payment_status" class="form-label fw-bold">Payment Status</label>
+              <select class="form-select" id="payment_status" name="payment_status" {% if session.get('role') != 'OWNER' %}disabled{% endif %}>
+                <option value="PENDING">PENDING</option>
+                <option value="PARTIALLY_PAID">PARTIALLY PAID</option>
+                <option value="PAID">PAID</option>
+                <option value="OVERDUE">OVERDUE</option>
+              </select>
+              {% if session.get('role') != 'OWNER' %}
+                <small class="text-muted d-block mt-1">Status calculates automatically based on Amount Received.</small>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Client Information Card -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold text-dark mb-0">2. Customer / Client Information</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label for="existing_customer_select" class="form-label text-muted small">Select Existing Customer (Optional)</label>
+              <select class="form-select form-select-sm" id="existing_customer_select">
+                <option value="">-- Or type new customer details below --</option>
+                {% for cust in customers %}
+                  <option value="{{ cust.id }}" data-name="{{ cust.name }}" data-phone="{{ cust.phone }}" data-city="{{ cust.city }}" data-location="{{ cust.location }}" data-type="{{ cust.customer_type }}" data-address="{{ cust.address }}" data-gst="{{ cust.gst_number }}">
+                    {{ cust.name }} ({{ cust.phone }}) - {{ cust.city }}
+                  </option>
+                {% endfor %}
+              </select>
+              <input type="hidden" name="customer_id" id="customer_id" value="">
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_name" class="form-label fw-bold">Client Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="client_name" name="client_name" placeholder="e.g. ABC Interiors / Patel Residence" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_phone" class="form-label fw-bold">Contact Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="client_phone" name="client_phone" placeholder="10-digit Indian phone" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_city" class="form-label">City</label>
+              <input type="text" class="form-control" id="client_city" name="client_city" value="Ahmedabad">
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_location" class="form-label">Client Location / Area</label>
+              <input type="text" class="form-control" id="client_location" name="client_location" placeholder="e.g. Bodakdev / SG Highway">
+            </div>
+
+            <div class="col-md-6">
+              <label for="customer_type" class="form-label">Customer Type</label>
+              <select class="form-select" id="customer_type" name="customer_type">
+                <option value="Individual" selected>Individual</option>
+                <option value="Business">Business</option>
+                <option value="Contractor">Contractor</option>
+                <option value="Builder">Builder</option>
+                <option value="Interior Designer">Interior Designer</option>
+                <option value="Architect">Architect</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="gst_number" class="form-label">GST Number (Optional)</label>
+              <input type="text" class="form-control" id="gst_number" name="gst_number" placeholder="24AAAAA0000A1Z5">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Furniture Items (Multi-Item Table) -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold text-dark mb-0">3. Furniture Items Purchased (Multiple Items Allowed)</h6>
+          <button type="button" id="btn_add_item_row" class="btn btn-sm btn-pf-accent">
+            + Add Another Furniture Item
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 25%;">Item Name <span class="text-danger">*</span></th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 10%;">Qty</th>
+                  <th style="width: 15%;">Unit Price (₹)</th>
+                  <th style="width: 12%;">Discount (₹)</th>
+                  <th style="width: 10%;">Tax (₹)</th>
+                  <th style="width: 13%;">Total (₹)</th>
+                  <th style="width: 5%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="bill_items_container">
+                <!-- Initial Item Row -->
+                <tr class="item-row">
+                  <td>
+                    <input type="text" name="item_name[]" class="form-control form-control-sm" placeholder="e.g. 6-Seater Teak Dining Table" required>
+                    <input type="text" name="material[]" class="form-control form-control-sm mt-1" placeholder="Material (e.g. Teak Wood / Velvet)">
+                  </td>
+                  <td>
+                    <select name="item_category_id[]" class="form-select form-select-sm">
+                      {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                      {% endfor %}
+                    </select>
+                    <input type="text" name="dimensions[]" class="form-control form-control-sm mt-1" placeholder="Size/Dimensions">
+                  </td>
+                  <td>
+                    <input type="number" name="quantity[]" class="form-control form-control-sm item-qty" value="1" min="1" required>
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" name="unit_price[]" class="form-control form-control-sm item-price" placeholder="0.00" required>
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" name="item_discount[]" class="form-control form-control-sm item-disc" value="0.00">
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" name="item_tax[]" class="form-control form-control-sm item-tax" value="0.00">
+                  </td>
+                  <td>
+                    <input type="number" step="0.01" name="item_total[]" class="form-control form-control-sm item-total bg-light" value="0.00" readonly>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-row">&times;</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Final Bill Financial Totals & Amount Received -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body">
+          <div class="row justify-content-end">
+            <div class="col-md-5">
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Items Subtotal:</span>
+                <div class="input-group input-group-sm" style="width: 180px;">
+                  <span class="input-group-text">₹</span>
+                  <input type="number" step="0.01" id="subtotal_input" class="form-control bg-light text-end fw-bold" value="0.00" readonly>
+                </div>
+              </div>
+
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span>Overall Discount:</span>
+                <div class="input-group input-group-sm" style="width: 180px;">
+                  <span class="input-group-text">₹</span>
+                  <input type="number" step="0.01" name="overall_discount" id="overall_discount" class="form-control text-end" value="0.00">
+                </div>
+              </div>
+
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span>Overall Tax / GST:</span>
+                <div class="input-group input-group-sm" style="width: 180px;">
+                  <span class="input-group-text">₹</span>
+                  <input type="number" step="0.01" name="overall_tax" id="overall_tax" class="form-control text-end" value="0.00">
+                </div>
+              </div>
+
+              <hr class="my-2">
+
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold fs-6">Final Bill Amount:</span>
+                <div class="input-group" style="width: 200px;">
+                  <span class="input-group-text bg-dark text-white fw-bold">₹</span>
+                  <input type="number" step="0.01" id="final_bill_amount" class="form-control form-control-lg bg-light text-end fw-bold text-dark" value="0.00" readonly>
+                </div>
+              </div>
+
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-success">Amount Received:</span>
+                <div class="input-group" style="width: 200px;">
+                  <span class="input-group-text bg-success text-white fw-bold">₹</span>
+                  <input type="number" step="0.01" name="amount_received" id="amount_received" class="form-control form-control-lg text-end fw-bold text-success" value="0.00" required>
+                </div>
+              </div>
+
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-danger">Pending Amount:</span>
+                <div class="input-group" style="width: 200px;">
+                  <span class="input-group-text bg-danger text-white fw-bold">₹</span>
+                  <input type="number" step="0.01" id="pending_amount" class="form-control form-control-lg bg-light text-end fw-bold text-danger" value="0.00" readonly>
+                </div>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-pf-primary btn-lg py-2 shadow">
+                  Save Client Bill Record
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/income.js') }}"></script>
+<script>
+  // Existing Customer Auto-fill listener
+  document.getElementById('existing_customer_select').addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    if (selected.value) {
+      document.getElementById('customer_id').value = selected.value;
+      document.getElementById('client_name').value = selected.getAttribute('data-name');
+      document.getElementById('client_phone').value = selected.getAttribute('data-phone');
+      document.getElementById('client_city').value = selected.getAttribute('data-city');
+      document.getElementById('client_location').value = selected.getAttribute('data-location');
+      document.getElementById('customer_type').value = selected.getAttribute('data-type') || 'Individual';
+      document.getElementById('gst_number').value = selected.getAttribute('data-gst') || '';
+    } else {
+      document.getElementById('customer_id').value = '';
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Client Bills & Income — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Client Bills / Income Records</h4>
+    <small class="text-muted">Recorded Customer Invoices & Payment Tracking</small>
+  </div>
+  <div>
+    <a href="{{ url_for('income.add') }}" class="btn btn-pf-primary px-3 shadow-sm">
+      + Add New Client Bill
+    </a>
+  </div>
+</div>
+
+<!-- Multi-Filter Toolbar -->
+<div class="filter-card shadow-sm">
+  <form method="GET" action="{{ url_for('income.index') }}">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search Bill #, Client, Phone, Item..." value="{{ filters.get('search', '') }}">
+      </div>
+
+      <div class="col-md-2">
+        <select name="payment_status" class="form-select form-select-sm">
+          <option value="">All Payment Statuses</option>
+          <option value="PAID" {% if filters.get('payment_status') == 'PAID' %}selected{% endif %}>Paid</option>
+          <option value="PARTIALLY_PAID" {% if filters.get('payment_status') == 'PARTIALLY_PAID' %}selected{% endif %}>Partially Paid</option>
+          <option value="PENDING" {% if filters.get('payment_status') == 'PENDING' %}selected{% endif %}>Pending</option>
+          <option value="OVERDUE" {% if filters.get('payment_status') == 'OVERDUE' %}selected{% endif %}>Overdue</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="city" class="form-select form-select-sm">
+          <option value="">All Cities</option>
+          {% for c in city_list %}
+            <option value="{{ c }}" {% if filters.get('city') == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <select name="item_category_id" class="form-select form-select-sm">
+          <option value="">All Furniture Categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if filters.get('item_category_id')|int == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 d-flex gap-1">
+        <button type="submit" class="btn btn-pf-primary btn-sm flex-grow-1">Filter</button>
+        <a href="{{ url_for('income.index') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Bills Table -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Bill Number</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Location</th>
+            <th>Items Count</th>
+            <th>Bill Amount</th>
+            <th>Received</th>
+            <th>Pending</th>
+            <th>Status</th>
+            <th>Payment Method</th>
+            <th>Added By</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if bills %}
+            {% for b in bills %}
+              <tr>
+                <td class="fw-bold">
+                  <a href="{{ url_for('income.view_bill', bill_id=b.id) }}" class="text-decoration-none text-dark">
+                    #{{ b.bill_number }}
+                  </a>
+                </td>
+                <td>{{ b.bill_date.strftime('%d-%m-%Y') }}</td>
+                <td>
+                  <a href="{{ url_for('customers.profile', customer_id=b.customer_id) }}" class="text-decoration-none fw-semibold text-primary">
+                    {{ b.customer.name }}
+                  </a>
+                  <small class="d-block text-muted">{{ b.customer.phone }}</small>
+                </td>
+                <td>{{ b.customer.location or b.customer.city }}</td>
+                <td><span class="badge bg-light text-dark border">{{ b.items|length }} Items</span></td>
+                <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(b.total_amount) }}</td>
+                <td class="text-success fw-semibold">₹{{ "{:,.2f}".format(b.amount_received) }}</td>
+                <td class="text-danger fw-semibold">₹{{ "{:,.2f}".format(b.pending_amount) }}</td>
+                <td>
+                  {% if b.payment_status == 'PAID' %}
+                    <span class="badge badge-paid">PAID</span>
+                  {% elif b.payment_status == 'PARTIALLY_PAID' %}
+                    <span class="badge badge-partially-paid">PARTIALLY PAID</span>
+                  {% elif b.payment_status == 'OVERDUE' %}
+                    <span class="badge badge-overdue">OVERDUE</span>
+                  {% else %}
+                    <span class="badge badge-pending">PENDING</span>
+                  {% endif %}
+                </td>
+                <td>{{ b.payment_method }}</td>
+                <td><small class="text-muted">{{ b.creator.full_name }}</small></td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('income.view_bill', bill_id=b.id) }}" class="btn btn-outline-secondary" title="View Bill">
+                      View
+                    </a>
+                    {% if session.get('role') == 'OWNER' %}
+                      <a href="{{ url_for('income.edit_bill', bill_id=b.id) }}" class="btn btn-outline-primary" title="Edit Bill">
+                        Edit
+                      </a>
+                    {% endif %}
+                    <a href="{{ url_for('income.duplicate_bill', bill_id=b.id) }}" class="btn btn-outline-info" title="Duplicate">
+                      Dup
+                    </a>
+                    {% if session.get('role') == 'OWNER' %}
+                      <form method="POST" action="{{ url_for('income.delete_bill', bill_id=b.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete Bill #{{ b.bill_number }}?');">
+                        <button type="submit" class="btn btn-outline-danger">Del</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="12" class="text-center py-5 text-muted">
+                No client bill records found for the selected criteria.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail Logs — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">System Audit Trail</h4>
+    <small class="text-muted">Complete track record of user actions, entries, edits and deletions</small>
+  </div>
+  <div>
+    <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary btn-sm">Back to Settings</a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Target Table</th>
+            <th>Record ID</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if logs %}
+            {% for log in logs %}
+              <tr>
+                <td><small class="text-muted fw-bold">{{ log.timestamp.strftime('%d-%m-%Y %H:%M:%S') }}</small></td>
+                <td><span class="fw-bold text-dark">{{ log.username }}</span></td>
+                <td><span class="badge bg-light text-primary border">{{ log.action }}</span></td>
+                <td><code>{{ log.table_name or '-' }}</code></td>
+                <td>{{ log.record_id or '-' }}</td>
+                <td>{{ log.details or '-' }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="6" class="text-center py-4 text-muted">No audit logs recorded yet.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

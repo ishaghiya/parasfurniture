@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Bill #{{ bill.bill_number }} — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Edit Client Bill #{{ bill.bill_number }}</h4>
+    <small class="text-muted">Modify stored bill information and payment status</small>
+  </div>
+  <div>
+    <a href="{{ url_for('income.view_bill', bill_id=bill.id) }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+  </div>
+</div>
+
+<form method="POST" action="{{ url_for('income.edit_bill', bill_id=bill.id) }}">
+  <div class="row g-4">
+    <!-- Bill & Payment Info -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h6 class="fw-bold text-dark mb-0">1. Bill & Payment Info</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="bill_number" class="form-label fw-bold">Bill Number</label>
+              <input type="text" class="form-control" id="bill_number" name="bill_number" value="{{ bill.bill_number }}" required>
+            </div>
+            
+            <div class="col-md-6">
+              <label for="bill_date" class="form-label fw-bold">Bill Date</label>
+              <input type="date" class="form-control" id="bill_date" name="bill_date" value="{{ bill.bill_date.strftime('%Y-%m-%d') }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="due_date" class="form-label">Due Date</label>
+              <input type="date" class="form-control" id="due_date" name="due_date" value="{{ bill.due_date.strftime('%Y-%m-%d') if bill.due_date else '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label for="payment_method" class="form-label fw-bold">Payment Method</label>
+              <select class="form-select" id="payment_method" name="payment_method">
+                {% for pm in ['Cash', 'UPI', 'Bank Transfer', 'Cheque', 'Card', 'Other'] %}
+                  <option value="{{ pm }}" {% if bill.payment_method == pm %}selected{% endif %}>{{ pm }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="reference_number" class="form-label">Ext Reference #</label>
+              <input type="text" class="form-control" id="reference_number" name="reference_number" value="{{ bill.reference_number or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label for="payment_status" class="form-label fw-bold">Payment Status</label>
+              <select class="form-select" id="payment_status" name="payment_status">
+                {% for st in ['PENDING', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'] %}
+                  <option value="{{ st }}" {% if bill.payment_status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Info -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-header bg-white py-3 border-bottom-0">
+          <h6 class="fw-bold text-dark mb-0">2. Customer Info</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="client_name" class="form-label fw-bold">Client Name</label>
+              <input type="text" class="form-control" id="client_name" name="client_name" value="{{ bill.customer.name }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_phone" class="form-label fw-bold">Contact Number</label>
+              <input type="text" class="form-control" id="client_phone" name="client_phone" value="{{ bill.customer.phone }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_city" class="form-label">City</label>
+              <input type="text" class="form-control" id="client_city" name="client_city" value="{{ bill.customer.city or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label for="client_location" class="form-label">Location / Area</label>
+              <input type="text" class="form-control" id="client_location" name="client_location" value="{{ bill.customer.location or '' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold text-dark mb-0">3. Bill Items</h6>
+          <button type="button" id="btn_add_item_row" class="btn btn-sm btn-pf-accent">+ Add Item</button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 25%;">Item Name</th>
+                  <th style="width: 15%;">Category</th>
+                  <th style="width: 10%;">Qty</th>
+                  <th style="width: 15%;">Unit Price</th>
+                  <th style="width: 12%;">Discount</th>
+                  <th style="width: 10%;">Tax</th>
+                  <th style="width: 13%;">Total</th>
+                  <th style="width: 5%;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="bill_items_container">
+                {% for item in bill.items %}
+                  <tr class="item-row">
+                    <td>
+                      <input type="text" name="item_name[]" class="form-control form-control-sm" value="{{ item.item_name }}" required>
+                      <input type="text" name="material[]" class="form-control form-control-sm mt-1" value="{{ item.material or '' }}" placeholder="Material">
+                    </td>
+                    <td>
+                      <select name="item_category_id[]" class="form-select form-select-sm">
+                        {% for cat in categories %}
+                          <option value="{{ cat.id }}" {% if item.furniture_item and item.furniture_item.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                      </select>
+                      <input type="text" name="dimensions[]" class="form-control form-control-sm mt-1" value="{{ item.dimensions or '' }}" placeholder="Dimensions">
+                    </td>
+                    <td>
+                      <input type="number" name="quantity[]" class="form-control form-control-sm item-qty" value="{{ item.quantity }}" min="1" required>
+                    </td>
+                    <td>
+                      <input type="number" step="0.01" name="unit_price[]" class="form-control form-control-sm item-price" value="{{ item.unit_price }}" required>
+                    </td>
+                    <td>
+                      <input type="number" step="0.01" name="item_discount[]" class="form-control form-control-sm item-disc" value="{{ item.discount or 0 }}">
+                    </td>
+                    <td>
+                      <input type="number" step="0.01" name="item_tax[]" class="form-control form-control-sm item-tax" value="{{ item.tax or 0 }}">
+                    </td>
+                    <td>
+                      <input type="number" step="0.01" name="item_total[]" class="form-control form-control-sm item-total bg-light" value="{{ item.total_amount }}" readonly>
+                    </td>
+                    <td class="text-center">
+                      <button type="button" class="btn btn-outline-danger btn-sm btn-remove-row">&times;</button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totals -->
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body">
+          <div class="row justify-content-end">
+            <div class="col-md-5">
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Subtotal:</span>
+                <input type="number" step="0.01" id="subtotal_input" class="form-control form-control-sm text-end w-50" value="{{ bill.subtotal }}" readonly>
+              </div>
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span>Overall Discount:</span>
+                <input type="number" step="0.01" name="overall_discount" id="overall_discount" class="form-control form-control-sm text-end w-50" value="{{ bill.discount }}">
+              </div>
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span>Overall Tax / GST:</span>
+                <input type="number" step="0.01" name="overall_tax" id="overall_tax" class="form-control form-control-sm text-end w-50" value="{{ bill.tax }}">
+              </div>
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold fs-6">Final Bill Amount:</span>
+                <input type="number" step="0.01" id="final_bill_amount" class="form-control form-control-lg text-end fw-bold w-50" value="{{ bill.total_amount }}" readonly>
+              </div>
+              <div class="mb-2 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-success">Amount Received:</span>
+                <input type="number" step="0.01" name="amount_received" id="amount_received" class="form-control form-control-lg text-end fw-bold text-success w-50" value="{{ bill.amount_received }}" required>
+              </div>
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-danger">Pending Balance:</span>
+                <input type="number" step="0.01" id="pending_amount" class="form-control form-control-lg text-end fw-bold text-danger w-50" value="{{ bill.pending_amount }}" readonly>
+              </div>
+              <button type="submit" class="btn btn-pf-primary btn-lg w-100 py-2">Update Bill Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/income.js') }}"></script>
+{% endblock %}

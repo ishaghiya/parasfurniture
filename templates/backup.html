@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Database Backup & Restore — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Offline Database Backup & Safety Restore</h4>
+    <small class="text-muted">Create local backup files of your SQLite database or restore from a previous backup</small>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Create Backup Action Card -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white py-3 border-bottom-0">
+        <h6 class="fw-bold text-dark mb-0">1. Create New Database Backup</h6>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">
+          Generates a complete, timestamped copy of <code>database.db</code>. Backup files remain on this local computer inside the <code>backups/</code> folder.
+        </p>
+
+        <form method="POST" action="{{ url_for('backup.create') }}">
+          <button type="submit" class="btn btn-pf-primary btn-lg w-100 py-3 shadow">
+            Create Instant Database Backup Now
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restore Backup Action Card -->
+  <div class="col-md-6">
+    <div class="card border-0 shadow-sm rounded-3 h-100">
+      <div class="card-header bg-white py-3 border-bottom-0">
+        <h6 class="fw-bold text-danger mb-0">2. Restore Database from File</h6>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning py-2">
+          <strong>Safety Pre-Backup:</strong> Before restoring, the system automatically creates a safety backup of your current database so no data is ever lost.
+        </div>
+
+        <form method="POST" action="{{ url_for('backup.restore') }}" enctype="multipart/form-data" onsubmit="return confirm('CRITICAL WARNING: Restoring will replace the active database. Proceed?');">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Select Backup File (.db)</label>
+            <input type="file" class="form-control" name="backup_file" accept=".db" required>
+          </div>
+          <button type="submit" class="btn btn-danger btn-lg w-100 py-2 shadow-sm">
+            Restore Selected Backup File
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Backups List -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3">
+        <h6 class="fw-bold text-dark mb-0">Available Local Backups ({{ backups|length }})</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Backup Filename</th>
+                <th>File Size</th>
+                <th class="text-end">Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if backups %}
+                {% for b in backups %}
+                  <tr>
+                    <td class="fw-bold text-dark"><code>{{ b.filename }}</code></td>
+                    <td>{{ b.size_kb }} KB</td>
+                    <td class="text-end">
+                      <a href="{{ url_for('backup.download', filename=b.filename) }}" class="btn btn-outline-primary btn-sm">
+                        Download Copy
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="3" class="text-center py-4 text-muted">No database backup files found yet.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

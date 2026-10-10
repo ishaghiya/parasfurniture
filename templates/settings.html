@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Business & System Settings</h4>
+    <small class="text-muted">Configure Paras Furniture details and Indian currency settings</small>
+  </div>
+  <div>
+    <a href="{{ url_for('settings.audit_logs') }}" class="btn btn-outline-secondary btn-sm">View System Audit Trail</a>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('settings.save') }}">
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">1. Business Profile Details</h6>
+          
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Company / Showroom Name</label>
+              <input type="text" class="form-control" name="company_name" value="{{ settings.company_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Showroom Phone</label>
+              <input type="text" class="form-control" name="company_phone" value="{{ settings.company_phone }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" name="company_city" value="{{ settings.company_city }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">State</label>
+              <input type="text" class="form-control" name="company_state" value="{{ settings.company_state }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" name="company_address" rows="2">{{ settings.company_address }}</textarea>
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">2. Financial & System Defaults</h6>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Currency Symbol</label>
+              <input type="text" class="form-control" name="currency_symbol" value="{{ settings.currency_symbol }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Date Display Format</label>
+              <input type="text" class="form-control" name="date_format" value="{{ settings.date_format }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Session Timeout (Minutes)</label>
+              <input type="number" class="form-control" name="inactivity_timeout" value="{{ settings.inactivity_timeout }}" required>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-pf-primary btn-lg w-100 py-2">Save System Settings</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

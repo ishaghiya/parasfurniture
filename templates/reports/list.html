@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Exports — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Financial & Business Reports</h4>
+    <small class="text-muted">Export accounting summaries in Excel, CSV, or PDF</small>
+  </div>
+</div>
+
+<!-- Report Selector & Date Filter Bar -->
+<div class="filter-card shadow-sm mb-4">
+  <form method="GET" action="{{ url_for('reports.index') }}">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold mb-1">Select Report Type</label>
+        <select name="report_type" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="income" {% if report_type == 'income' %}selected{% endif %}>Income / Client Bills Report</option>
+          <option value="expense" {% if report_type == 'expense' %}selected{% endif %}>Expense Report</option>
+          <option value="profit" {% if report_type == 'profit' %}selected{% endif %}>Profit & Loss Statement</option>
+          <option value="customer" {% if report_type == 'customer' %}selected{% endif %}>Customer-wise Revenue Report</option>
+          <option value="item" {% if report_type == 'item' %}selected{% endif %}>Furniture Item Revenue Report</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold mb-1">From Date</label>
+        <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label text-muted small fw-bold mb-1">To Date</label>
+        <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+      </div>
+
+      <div class="col-md-3 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-pf-primary btn-sm flex-grow-1">Generate Report</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Export Action Buttons Bar -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="fw-bold text-dark mb-0">
+    {% if report_type == 'income' %}Income & Bills Report
+    {% elif report_type == 'expense' %}Expense Report
+    {% elif report_type == 'profit' %}Profit & Loss Summary
+    {% elif report_type == 'customer' %}Customer Revenue Report
+    {% elif report_type == 'item' %}Furniture Item Revenue Report
+    {% endif %}
+  </h5>
+  
+  <div class="btn-group">
+    <a href="{{ url_for('reports.index', report_type=report_type, date_from=date_from, date_to=date_to, export='excel') }}" class="btn btn-success btn-sm px-3 fw-bold">
+      Export to Excel (.xlsx)
+    </a>
+    <a href="{{ url_for('reports.index', report_type=report_type, date_from=date_from, date_to=date_to, export='csv') }}" class="btn btn-outline-secondary btn-sm px-3">
+      Export CSV
+    </a>
+    {% if report_type in ['income', 'expense'] %}
+      <a href="{{ url_for('reports.index', report_type=report_type, date_from=date_from, date_to=date_to, export='pdf') }}" class="btn btn-danger btn-sm px-3">
+        Export PDF
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Report Display Tables -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-0">
+    {% if report_type == 'income' %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Bill #</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Location</th>
+              <th>Bill Amount</th>
+              <th>Received</th>
+              <th>Pending</th>
+              <th>Status</th>
+              <th>Method</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in bills %}
+              <tr>
+                <td class="fw-bold">#{{ b.bill_number }}</td>
+                <td>{{ b.bill_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ b.customer.name if b.customer else '' }}</td>
+                <td>{{ b.customer.location or b.customer.city if b.customer else '' }}</td>
+                <td class="fw-bold">₹{{ "{:,.2f}".format(b.total_amount) }}</td>
+                <td class="text-success">₹{{ "{:,.2f}".format(b.amount_received) }}</td>
+                <td class="text-danger">₹{{ "{:,.2f}".format(b.pending_amount) }}</td>
+                <td><span class="badge badge-paid">{{ b.payment_status }}</span></td>
+                <td>{{ b.payment_method }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="9" class="text-center py-4 text-muted">No bill records found for selected period.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% elif report_type == 'expense' %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Vendor</th>
+              <th>Method</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in expenses %}
+              <tr>
+                <td>{{ e.expense_date.strftime('%d-%m-%Y') }}</td>
+                <td class="fw-bold">{{ e.category.name if e.category else '' }}</td>
+                <td><span class="badge bg-light text-dark border">{{ e.expense_type }}</span></td>
+                <td>{{ e.description }}</td>
+                <td class="fw-bold text-danger">₹{{ "{:,.2f}".format(e.amount) }}</td>
+                <td>{{ e.vendor or '-' }}</td>
+                <td>{{ e.payment_method }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="7" class="text-center py-4 text-muted">No expense records found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% elif report_type == 'profit' %}
+      <div class="p-4">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <small class="text-muted d-block fw-bold">TOTAL INCOME</small>
+              <h3 class="fw-bold text-success mb-0">₹{{ "{:,.2f}".format(profit_summary.total_income) }}</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <small class="text-muted d-block fw-bold">TOTAL EXPENSE</small>
+              <h3 class="fw-bold text-danger mb-0">₹{{ "{:,.2f}".format(profit_summary.total_expense) }}</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <small class="text-muted d-block fw-bold">NET PROFIT</small>
+              <h3 class="fw-bold text-primary mb-0">₹{{ "{:,.2f}".format(profit_summary.net_profit) }}</h3>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded border">
+              <small class="text-muted d-block fw-bold">PROFIT MARGIN</small>
+              <h3 class="fw-bold text-warning mb-0">{{ "{:.1f}".format(profit_summary.profit_margin) }}%</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% elif report_type == 'customer' %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Phone</th>
+              <th>Location</th>
+              <th class="text-center">Total Bills</th>
+              <th class="text-end">Total Revenue</th>
+              <th class="text-end">Paid</th>
+              <th class="text-end">Pending</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in cust_report %}
+              <tr>
+                <td class="fw-bold">{{ c['Customer Name'] }}</td>
+                <td>{{ c['Phone'] }}</td>
+                <td>{{ c['Location'] }}</td>
+                <td class="text-center">{{ c['Total Bills'] }}</td>
+                <td class="text-end fw-bold">₹{{ "{:,.2f}".format(c['Total Revenue (₹)']) }}</td>
+                <td class="text-end text-success">₹{{ "{:,.2f}".format(c['Amount Paid (₹)']) }}</td>
+                <td class="text-end text-danger">₹{{ "{:,.2f}".format(c['Amount Pending (₹)']) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% elif report_type == 'item' %}
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead>
+            <tr>
+              <th>Furniture Item</th>
+              <th>Category</th>
+              <th class="text-center">Units Sold</th>
+              <th class="text-end">Total Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in item_report %}
+              <tr>
+                <td class="fw-bold">{{ item.item_name }}</td>
+                <td><span class="badge bg-light text-dark border">{{ item.category }}</span></td>
+                <td class="text-center fw-bold">{{ item.units_sold }}</td>
+                <td class="text-end fw-bold text-primary">₹{{ "{:,.2f}".format(item.total_revenue) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

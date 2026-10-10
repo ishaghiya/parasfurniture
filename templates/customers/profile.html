@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Profile — {{ customer.name }} — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Customer Profile — {{ customer.name }}</h4>
+    <small class="text-muted">Client History & Account Summary</small>
+  </div>
+  <div>
+    <a href="{{ url_for('customers.index') }}" class="btn btn-outline-secondary btn-sm">Back to Directory</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Customer Info & Summary -->
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body">
+        <h5 class="fw-bold text-dark mb-1">{{ customer.name }}</h5>
+        <span class="badge bg-light text-dark border mb-3">{{ customer.customer_type }}</span>
+        
+        <p class="mb-1"><strong>Phone:</strong> {{ customer.phone }}</p>
+        {% if customer.alternate_phone %}<p class="mb-1"><strong>Alt Phone:</strong> {{ customer.alternate_phone }}</p>{% endif %}
+        {% if customer.email %}<p class="mb-1"><strong>Email:</strong> {{ customer.email }}</p>{% endif %}
+        <p class="mb-1"><strong>Location:</strong> {{ customer.location or customer.city }}</p>
+        <p class="mb-1"><strong>City:</strong> {{ customer.city }}, {{ customer.state }}</p>
+        {% if customer.gst_number %}<p class="mb-1"><strong>GSTIN:</strong> {{ customer.gst_number }}</p>{% endif %}
+        {% if customer.address %}<p class="mb-1 text-muted small"><strong>Address:</strong> {{ customer.address }}</p>{% endif %}
+
+        <hr>
+
+        <button type="button" class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+          Edit Customer Details
+        </button>
+      </div>
+    </div>
+
+    <!-- Financial Stats Card -->
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom-0">
+        <h6 class="fw-bold text-dark mb-0">Financial Summary</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Total Bills:</span>
+          <span class="fw-bold">{{ bills|length }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Total Purchase:</span>
+          <span class="fw-bold text-dark">₹{{ "{:,.2f}".format(total_purchase) }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Total Paid:</span>
+          <span class="fw-bold text-success">₹{{ "{:,.2f}".format(total_paid) }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Total Pending:</span>
+          <span class="fw-bold text-danger">₹{{ "{:,.2f}".format(total_pending) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bills History & Furniture Items Purchased -->
+  <div class="col-md-8">
+    <!-- Furniture Items Purchased Summary -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-3 border-bottom-0">
+        <h6 class="fw-bold text-dark mb-0">Purchased Furniture Items</h6>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Furniture Item</th>
+                <th>Category</th>
+                <th class="text-center">Total Units</th>
+                <th class="text-end">Total Spent</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if purchased_items %}
+                {% for item_name, pinfo in purchased_items.items() %}
+                  <tr>
+                    <td class="fw-bold">{{ item_name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ pinfo.category }}</span></td>
+                    <td class="text-center">{{ pinfo.quantity }}</td>
+                    <td class="text-end fw-bold">₹{{ "{:,.2f}".format(pinfo.total_spent) }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="4" class="text-center py-3 text-muted">No items recorded yet.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bills History List -->
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-dark mb-0">Client Bill History</h6>
+        <a href="{{ url_for('income.add') }}" class="btn btn-sm btn-pf-primary">+ Add New Bill</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-custom mb-0">
+            <thead>
+              <tr>
+                <th>Bill Number</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Received</th>
+                <th>Pending</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if bills %}
+                {% for b in bills %}
+                  <tr>
+                    <td class="fw-bold">#{{ b.bill_number }}</td>
+                    <td>{{ b.bill_date.strftime('%d-%m-%Y') }}</td>
+                    <td class="fw-bold">₹{{ "{:,.2f}".format(b.total_amount) }}</td>
+                    <td class="text-success">₹{{ "{:,.2f}".format(b.amount_received) }}</td>
+                    <td class="text-danger">₹{{ "{:,.2f}".format(b.pending_amount) }}</td>
+                    <td>
+                      {% if b.payment_status == 'PAID' %}<span class="badge badge-paid">PAID</span>
+                      {% elif b.payment_status == 'PARTIALLY_PAID' %}<span class="badge badge-partially-paid">PARTIALLY PAID</span>
+                      {% else %}<span class="badge badge-pending">PENDING</span>{% endif %}
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ url_for('income.view_bill', bill_id=b.id) }}" class="btn btn-outline-secondary btn-sm">View</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="7" class="text-center py-4 text-muted">No bills recorded for this customer.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Edit Customer Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('customers.edit', customer_id=customer.id) }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Customer Name</label>
+              <input type="text" class="form-control" name="name" value="{{ customer.name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Phone Number</label>
+              <input type="text" class="form-control" name="phone" value="{{ customer.phone }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" name="city" value="{{ customer.city }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Location / Area</label>
+              <input type="text" class="form-control" name="location" value="{{ customer.location or '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" name="address" rows="2">{{ customer.address or '' }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-pf-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

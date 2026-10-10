@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Customers Directory — Paras Furniture{% endblock %}
+
+{% block content %}
+<div class="top-header">
+  <div>
+    <h4 class="fw-bold mb-0 text-dark">Customer Directory</h4>
+    <small class="text-muted">Client Profiles, Purchase Histories & Pending Collections</small>
+  </div>
+  <div>
+    <button type="button" class="btn btn-pf-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+      + Add New Customer
+    </button>
+  </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="filter-card shadow-sm mb-3">
+  <form method="GET" action="{{ url_for('customers.index') }}">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search name, phone, city..." value="{{ search_query }}">
+      </div>
+      <div class="col-md-3">
+        <select name="city" class="form-select form-select-sm">
+          <option value="">All Cities</option>
+          {% for c in cities %}
+            <option value="{{ c }}" {% if city_filter == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="customer_type" class="form-select form-select-sm">
+          <option value="">All Customer Types</option>
+          {% for ct in ['Individual', 'Business', 'Contractor', 'Builder', 'Interior Designer', 'Architect', 'Other'] %}
+            <option value="{{ ct }}" {% if type_filter == ct %}selected{% endif %}>{{ ct }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-1">
+        <button type="submit" class="btn btn-pf-primary btn-sm flex-grow-1">Search</button>
+        <a href="{{ url_for('customers.index') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Customers Table -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-custom mb-0">
+        <thead>
+          <tr>
+            <th>Customer Name</th>
+            <th>Phone</th>
+            <th>Location / City</th>
+            <th>Type</th>
+            <th>Total Bills</th>
+            <th>Total Purchase</th>
+            <th>Paid</th>
+            <th>Pending</th>
+            <th>Last Purchase</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if customers %}
+            {% for c in customers %}
+              <tr>
+                <td class="fw-bold">
+                  <a href="{{ url_for('customers.profile', customer_id=c.id) }}" class="text-decoration-none text-dark">
+                    {{ c.name }}
+                  </a>
+                </td>
+                <td>{{ c.phone }}</td>
+                <td>{{ c.location or c.city }}</td>
+                <td><span class="badge bg-light text-dark border">{{ c.customer_type }}</span></td>
+                <td><span class="badge bg-light text-primary border">{{ c.total_bills }} Bills</span></td>
+                <td class="fw-bold text-dark">₹{{ "{:,.2f}".format(c.total_purchase) }}</td>
+                <td class="text-success fw-semibold">₹{{ "{:,.2f}".format(c.amount_paid) }}</td>
+                <td class="text-danger fw-semibold">₹{{ "{:,.2f}".format(c.amount_pending) }}</td>
+                <td><small class="text-muted">{{ c.last_purchase_date }}</small></td>
+                <td class="text-end">
+                  <a href="{{ url_for('customers.profile', customer_id=c.id) }}" class="btn btn-outline-primary btn-sm">
+                    View Profile
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="10" class="text-center py-5 text-muted">
+                No customer records found.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Add New Customer Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('customers.add') }}">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label fw-bold">Customer / Company Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label fw-bold">Contact Phone Number <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" name="phone" required>
+            </div>
+            <div class="col-md-6">
+              <label for="alternate_phone" class="form-label">Alternate Phone</label>
+              <input type="text" class="form-control" name="alternate_phone">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email Address</label>
+              <input type="email" class="form-control" name="email">
+            </div>
+            <div class="col-md-6">
+              <label for="city" class="form-label">City</label>
+              <input type="text" class="form-control" name="city" value="Ahmedabad">
+            </div>
+            <div class="col-md-6">
+              <label for="location" class="form-label">Location / Area</label>
+              <input type="text" class="form-control" name="location" placeholder="e.g. Satellite / Thaltej">
+            </div>
+            <div class="col-md-6">
+              <label for="customer_type" class="form-label">Customer Type</label>
+              <select class="form-select" name="customer_type">
+                <option value="Individual">Individual</option>
+                <option value="Business">Business</option>
+                <option value="Contractor">Contractor</option>
+                <option value="Builder">Builder</option>
+                <option value="Interior Designer">Interior Designer</option>
+                <option value="Architect">Architect</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="gst_number" class="form-label">GST Number</label>
+              <input type="text" class="form-control" name="gst_number">
+            </div>
+            <div class="col-12">
+              <label for="address" class="form-label">Address</label>
+              <textarea class="form-control" name="address" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-pf-primary">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
